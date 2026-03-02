@@ -1790,18 +1790,42 @@ function vTog(){
   const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
   if(!SR){ $('vst').textContent='⚠ Chrome/Edge only'; return; }
   vR=new SR(); vR.lang=$('lng').value.split('|')[0];
-  vR.continuous=true; vR.interimResults=true; vFin='';
+
+  // Mobile fix: use non-continuous mode to prevent word repetition
+  const mob = window.innerWidth <= 600;
+  vR.continuous = !mob;       // single-shot on mobile
+  vR.interimResults = !mob;   // no interim on mobile (causes duplicates)
+  vFin='';
+
+  // Track which result indices we already processed (desktop dedupe)
+  let lastResultIdx = 0;
+
   vR.onstart=()=>{ vOn=true; setVUI(true); };
+
   vR.onresult=e=>{
-    let f='',it='';
-    for(let i=0;i<e.results.length;i++){
-      if(e.results[i].isFinal)f+=e.results[i][0].transcript+' ';
-      else it+=e.results[i][0].transcript;
+    if(mob){
+      // Mobile: just grab the last final result only
+      for(let i=e.results.length-1;i>=0;i--){
+        if(e.results[i].isFinal){
+          vFin = e.results[i][0].transcript;
+          break;
+        }
+      }
+      $('vtx').style.display='block';
+      $('vtx').innerHTML=`<span style="color:#fff">${vFin}</span>`;
+    } else {
+      // Desktop: accumulate finals, show interim separately
+      let f='', it='';
+      for(let i=0;i<e.results.length;i++){
+        if(e.results[i].isFinal) f+=e.results[i][0].transcript+' ';
+        else it+=e.results[i][0].transcript;
+      }
+      vFin=f; $('vtx').style.display='block';
+      $('vtx').innerHTML=(f?`<span style="color:#fff">${f}</span>`:'')+
+        (it?`<span style="color:rgba(230,57,70,.4)">${it}</span>`:'');
     }
-    vFin=f; $('vtx').style.display='block';
-    $('vtx').innerHTML=(f?`<span style="color:#fff">${f}</span>`:'')+
-      (it?`<span style="color:rgba(230,57,70,.4)">${it}</span>`:'');
   };
+
   vR.onend=()=>{
     vOn=false; setVUI(false); const res=vFin.trim();
     if(res){ $('mi').value=res; autoR($('mi')); $('vst').textContent='✓ TRANSFERRED';
