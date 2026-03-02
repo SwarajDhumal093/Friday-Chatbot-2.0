@@ -607,6 +607,65 @@ select:focus{border-color:var(--r);box-shadow:0 0 12px rgba(230,57,70,.22)}
 #analytics-btn{background:rgba(255,200,60,.06);border:1px solid rgba(255,200,60,.2);
   color:rgba(255,200,60,.7)}
 #analytics-btn:hover{background:rgba(255,200,60,.12);border-color:rgba(255,200,60,.4);color:#ffc83c}
+
+/* ══ MOBILE RESPONSIVE ══ */
+@media (max-width: 600px) {
+  :root{ --sw:82vw; }
+  #sb{ transform:translateX(calc(-1 * var(--sw))); width:0; min-width:0; border:none; }
+  #sb.mobile-open{ transform:translateX(0); width:var(--sw); border-right:1px solid var(--r3); }
+  #sbt{ left:0 !important; width:28px; height:44px; }
+  #sbt.mob-open{ left:var(--sw) !important; }
+  #hdr{ padding:10px 12px 8px; }
+  #htit{ font-size:1.1rem; letter-spacing:.06em; }
+  #hsub{ font-size:.48rem; letter-spacing:.1em; }
+  #hbdg{ gap:5px; flex-wrap:wrap; justify-content:center; }
+  #bdgt{ font-size:.44rem; }
+  #modebdg{ font-size:.38rem; padding:2px 6px; }
+  #devtog{ margin-left:0; margin-top:4px; }
+  .dtb{ padding:4px 8px; font-size:.44rem; }
+  #msgs{ padding:10px 10px 4px; }
+  .mbd{ max-width:88%; }
+  .mb{ padding:9px 12px; font-size:.9rem; }
+  .mav{ width:28px; height:28px; font-size:.75rem; }
+  .mw{ gap:6px; margin-bottom:12px; }
+  #inp{ padding:5px 10px 10px; }
+  #mi{ padding:10px 12px; min-height:44px; }
+  #sndb{ width:44px; height:44px; font-size:1rem; border-radius:10px; }
+  #mf{ gap:6px; }
+  #vrow{ gap:7px; margin-bottom:7px; }
+  #vbtn{ padding:7px 12px; font-size:.56rem; }
+  .lt{ font-size:2.2rem; }
+  .ltg{ font-size:2.2rem; }
+  .lsub{ font-size:.5rem; letter-spacing:.18em; }
+  .lcard{ width:92vw; padding:20px 16px; }
+  .lbdt{ font-size:.46rem; letter-spacing:.06em; }
+  .lic{ width:64px; height:64px; margin-bottom:10px; }
+  .lic .e{ font-size:2.2rem; }
+  .lbtn{ font-size:.62rem; padding:11px; }
+  .lin{ padding:9px 12px; }
+  #tool-modal{ width:96vw; max-height:92vh; }
+  .tm-head{ padding:14px 14px 12px; gap:9px; }
+  .tm-title{ font-size:.78rem; }
+  .tm-body{ padding:12px 14px 0; }
+  .tm-foot{ padding:12px 14px 16px; flex-direction:column; }
+  .tm-launch,.tm-cancel{ width:100%; text-align:center; }
+  .tm-row{ grid-template-columns:1fr; }
+  #analytics-box{ width:94vw; padding:16px 14px; }
+  .an-grid{ grid-template-columns:repeat(3,1fr); gap:5px; }
+  .an-val{ font-size:.85rem; }
+  .sbn{ font-size:.88rem; }
+  .sbs{ padding:8px 10px 5px; }
+  .sbtn{ font-size:.74rem; padding:8px 10px; }
+  select{ font-size:.8rem; padding:7px 8px; }
+  #mem-panel{ margin:0 10px 6px; padding:8px 10px; }
+  .mem-text{ font-size:.72rem; }
+  #typ{ padding:0 10px 10px; }
+  html,body{ touch-action:pan-y; }
+}
+@media (max-width:600px){
+  input, textarea, select { font-size:16px !important; }
+  .lin{ font-size:16px !important; }
+}
 </style>
 </head>
 <body>
@@ -753,7 +812,7 @@ select:focus{border-color:var(--r);box-shadow:0 0 12px rgba(230,57,70,.22)}
         <span class="hstr">✦</span>
       </div>
       <p id="hsub">YOUR ADVANCED AI ASSISTANT — READY TO ASSIST</p>
-      <div id="hbdg" style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:center">
+      <div id="hbdg" style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;justify-content:center;max-width:100%">
         <div style="display:flex;align-items:center;gap:6px;background:rgba(230,57,70,.06);border:1px solid rgba(230,57,70,.2);border-radius:20px;padding:4px 14px">
           <div class="bdt"></div>
           <span id="bdgt">Online · LLaMA 3.1 8B · English</span>
@@ -943,11 +1002,28 @@ function doLogout(){
 // ══════════════════════════════════════════════
 //  SIDEBAR
 // ══════════════════════════════════════════════
+function isMobile(){ return window.innerWidth <= 600; }
+
 function toggleSB(){
+  if(isMobile()){
+    const sb=$('sb'), t=$('sbt');
+    const open = sb.classList.contains('mobile-open');
+    if(open){
+      sb.classList.remove('mobile-open');
+      t.classList.remove('mob-open');
+      t.textContent='❯';
+    } else {
+      sb.classList.add('mobile-open');
+      t.classList.add('mob-open');
+      t.textContent='❮';
+    }
+    return;
+  }
   S.sidebarOpen = !S.sidebarOpen;
   saveS(); applySB();
 }
 function applySB(){
+  if(isMobile()) return;
   const sb=$('sb'), t=$('sbt');
   if (S.sidebarOpen){
     sb.classList.remove('off'); t.classList.remove('off');
