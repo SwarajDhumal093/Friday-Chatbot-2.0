@@ -1789,52 +1789,46 @@ function vTog(){
   if(vOn){ vR&&vR.stop(); return; }
   const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
   if(!SR){ $('vst').textContent='⚠ Chrome/Edge only'; return; }
-  vR=new SR(); vR.lang=$('lng').value.split('|')[0];
 
-  // Mobile fix: use non-continuous mode to prevent word repetition
-  const mob = window.innerWidth <= 600;
-  vR.continuous = !mob;       // single-shot on mobile
-  vR.interimResults = !mob;   // no interim on mobile (causes duplicates)
+  vR=new SR();
+  vR.lang=$('lng').value.split('|')[0];
+  vR.continuous = false;        // always false — prevents looping/repetition
+  vR.interimResults = false;    // always false — only final clean result
+  vR.maxAlternatives = 1;
   vFin='';
-
-  // Track which result indices we already processed (desktop dedupe)
-  let lastResultIdx = 0;
 
   vR.onstart=()=>{ vOn=true; setVUI(true); };
 
   vR.onresult=e=>{
-    if(mob){
-      // Mobile: just grab the last final result only
-      for(let i=e.results.length-1;i>=0;i--){
-        if(e.results[i].isFinal){
-          vFin = e.results[i][0].transcript;
-          break;
-        }
-      }
-      $('vtx').style.display='block';
-      $('vtx').innerHTML=`<span style="color:#fff">${vFin}</span>`;
-    } else {
-      // Desktop: accumulate finals, show interim separately
-      let f='', it='';
-      for(let i=0;i<e.results.length;i++){
-        if(e.results[i].isFinal) f+=e.results[i][0].transcript+' ';
-        else it+=e.results[i][0].transcript;
-      }
-      vFin=f; $('vtx').style.display='block';
-      $('vtx').innerHTML=(f?`<span style="color:#fff">${f}</span>`:'')+
-        (it?`<span style="color:rgba(230,57,70,.4)">${it}</span>`:'');
+    // Take ONLY the first final result — ignore everything else
+    if(e.results && e.results.length > 0 && e.results[0].isFinal){
+      vFin = e.results[0][0].transcript.trim();
     }
+    $('vtx').style.display='block';
+    $('vtx').innerHTML=`<span style="color:#fff">${vFin}</span>`;
   };
 
   vR.onend=()=>{
-    vOn=false; setVUI(false); const res=vFin.trim();
-    if(res){ $('mi').value=res; autoR($('mi')); $('vst').textContent='✓ TRANSFERRED';
+    vOn=false; setVUI(false);
+    const res = vFin.trim();
+    if(res){
+      $('mi').value = res;
+      autoR($('mi'));
+      $('vst').textContent='✓ TRANSFERRED';
       $('vclr').style.display='inline-block';
-      setTimeout(()=>$('vst').textContent='',3000); }
-    else{ $('vtx').style.display='none'; $('vst').textContent='— no signal';
-      setTimeout(()=>$('vst').textContent='',3000); }
+      setTimeout(()=>$('vst').textContent='',3000);
+    } else {
+      $('vtx').style.display='none';
+      $('vst').textContent='— no signal';
+      setTimeout(()=>$('vst').textContent='',3000);
+    }
   };
-  vR.onerror=e=>{ vOn=false; setVUI(false); $('vst').textContent='ERR:'+e.error; };
+
+  vR.onerror=e=>{
+    vOn=false; setVUI(false);
+    if(e.error !== 'no-speech') $('vst').textContent='ERR:'+e.error;
+  };
+
   vR.start();
 }
 function setVUI(on){
